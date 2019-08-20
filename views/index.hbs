@@ -1,7 +1,81 @@
-<h1>{{ title }}</h1>
 <p>Welcome to Votesec.io</p>
-<p>Please get your Aadhaar QR scanned</p>
+<p>Please get your Aadhaar QR and Fingerprint scanned</p>
+<form>
+	<table id="table" class="w3-table-all w3-hoverable" style="display: none">
+		<thead>
+			<tr class="w3-light-grey">
+				<th>Election Symbol</th>
+				<th>Party Name</th>
+				<th>Candidate Name</th>
+				<th>VOTE</th>
+			</tr>
+		</thead>
+		<tbody id="tbody">
+		</tbody>
+	</table>
+</form>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var socket = io();
+	var checkedRadio = null
+	var radioArray = []
+	var socket = io()
+	socket.on('success', function () {
+		console.log("SUCCESS: Vote casted")
+	})
+	socket.on('error', function (msg) {
+		console.log("ERROR: " + msg)
+	})
+	socket.on('candidateList', function (list) {
+		console.log("Candidate List - ")
+		console.log(list)
+		let table = document.getElementById('tbody')
+		list.forEach(function (ele) {
+			let tr = document.createElement("tr")
+			table.appendChild(tr)
+
+			let td = document.createElement("td")
+			let img = document.createElement("img")
+			img.src = ele.link
+			img.height = 50;
+			img.width = 50;
+			td.appendChild(img)
+			tr.appendChild(td)
+
+			td = document.createElement("td")
+			td.innerHTML = ele.party + "<br>" + ele.party_local
+			tr.appendChild(td)
+
+			td = document.createElement("td");
+			td.innerHTML = ele.name + "<br>" + ele.name_local
+			tr.appendChild(td)
+
+			td = document.createElement("td");
+			let radio = document.createElement("input")
+			radio.type = "radio"
+			radio.value = ele.id
+			td.appendChild(radio)
+			radioArray.push(radio)
+			tr.appendChild(td)
+			tr.addEventListener("click", function () {
+				if(checkedRadio != null)
+					checkedRadio.checked = false
+				console.log("even listeener")
+				radio.checked = true
+				checkedRadio = radio
+			})
+		})
+		document.getElementById('table').style.display = "block"
+	})
+	socket.on('veriFailed', function () {
+		console.log("Verification failed")
+	})
+	socket.on('qr', function (aadhaar) {
+		console.log(aadhaar.name)
+	})
+	socket.on('fingerprint', function () {
+		console.log("fingerprint aaya")
+	})
+	socket.on('verified', function () {
+		console.log("VERIFIED")
+	})
 </script>
